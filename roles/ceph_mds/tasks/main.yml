@@ -1,0 +1,10 @@
+- name: Check ceph-mds service
+  command: pgrep ceph-mds
+  register: ceph_mds_pid
+  changed_when: false
+  ignore_errors: true
+
+- name: Create ceph-mds service
+  command: pveceph mds create
+  when: ceph_mds_pid.rc > 0
+

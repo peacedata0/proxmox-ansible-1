@@ -1,0 +1,11 @@
+- name: Check CephFS status
+  shell: ceph fs ls | grep -e "^name. cephfs.*cephfs_data"
+  register: ceph_fs_status
+  changed_when: false
+  ignore_errors: true
+
+- name: Create CephFS
+  when: ceph_fs_status.rc > 0
+  command: pveceph fs create --pg_num {{ ceph_fs_pg }} --add-storage
+
+

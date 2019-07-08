@@ -1,0 +1,12 @@
+- name: Check for ceph-mon
+  command: pgrep ceph-mon
+  register: ceph_mon_status
+  ignore_errors: true
+  changed_when: false
+
+- name: Create ceph-mon
+  shell: pveceph createmon
+  when: ceph_mon_status.rc == 1
+
+
+

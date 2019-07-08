@@ -1,0 +1,22 @@
+- name: Check for existing ceph_osd
+  command: pgrep ceph-osd
+  register: ceph_osd_pid
+  changed_when: false
+  ignore_errors: true
+
+- name: Read first 5KB of ceph device to determine state
+  shell: dd if={{ ceph_device }} bs=5K count=1 | sha256sum
+  when: "ceph_osd_pid.rc != 0"
+  register: ceph_device_first_5KB_sha256
+  changed_when: false
+
+- name: Determine if should initialize ceph_osd
+  when: "ceph_osd_pid.rc != 0 and ceph_device_first_5KB_sha256.stdout == 'a11937f356a9b0ba592c82f5290bac8016cb33a3f9bc68d3490147c158ebb10d  -'"
+  set_fact:
+    ceph_device_initialize: true
+  
+- name: Initialize ceph_osd device
+  when: ceph_device_initialize == True
+  command: pveceph createosd {{ ceph_device }}
+
+

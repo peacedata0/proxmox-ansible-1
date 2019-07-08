@@ -1,0 +1,36 @@
+- name: Check ceph status
+  command: pveceph status
+  register: pveceph_status
+  ignore_errors: true
+  changed_when: false
+
+- name: Check ceph pools
+  shell: pveceph pool ls | grep -e "^{{ ceph_pool }} "
+  register: ceph_pool_status
+  changed_when: false
+  ignore_errors: true
+
+- name: Create ceph pool
+  when: ceph_pool_status.rc > 0 and (pveceph_status.stdout | from_json).osdmap.osdmap.num_up_osds >= minimum_num_osds_for_pool
+  command: pveceph pool create {{ ceph_pool }}
+
+- name: Check ceph-vm storage
+  command: pvesm list ceph-vm
+  changed_when: false
+  ignore_errors: true
+  register: ceph_vm_status
+
+- name: Create ceph VM storage (ceph-vm)
+  when: ceph_vm_status.rc > 0
+  command: pvesm add rbd ceph-vm -nodes {{ ceph_nodes }} -pool {{ ceph_pool }} -content images
+
+- name: Check ceph-ct storage
+  command: pvesm list ceph-ct
+  changed_when: false
+  ignore_errors: true
+  register: ceph_ct_status
+
+- name: Create ceph container storage (ceph-ct)
+  when: ceph_ct_status.rc > 0
+  command: pvesm add rbd ceph-ct -nodes {{ ceph_nodes }} -pool {{ ceph_pool }} -content rootdir
+

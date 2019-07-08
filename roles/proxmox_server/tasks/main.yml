@@ -1,0 +1,60 @@
+- name: Update /etc/hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    mode: 0644
+
+## TODO: pvecm add requires user interaction to enter the password
+## Possibility to use expect: http://marvelley.com/blog/2014/04/23/handling-interactive-ansible-tasks/
+## So this doesn't work for now:
+# - name: Check cluster status
+#   shell: pvecm status | grep -e "^Node ID"
+#   register: cluster_status
+#   ignore_errors: yes
+#   changed_when: False
+
+# - name: Add node to cluster
+#   command: "pvecm add {{ proxmox_master_ip }}"
+#   when: "cluster_status.rc==1"
+
+## TODO: Until the above TODO is fixed,
+## this will just fail unless the cluster already exists:
+- name: Check cluster status
+  shell: pvecm status | grep -e "^Node ID"
+  register: cluster_status
+  changed_when: False
+
+- name: Decomercialify
+  replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: "^(\\s*)?if \\(data\\.status \\!== \\'Active\\'\\) \\{"
+    replace: "                if (false) {"
+
+- name: Remove enterprise repository
+  file:
+    state: absent
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+
+- name: Install community repository 
+  copy:
+    dest: /etc/apt/sources.list.d/pve-no-subscription.list
+    content: |
+      deb http://download.proxmox.com/debian stretch pve-no-subscription
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: "yes"
+    force_apt_get: "yes"
+    update_cache: "yes"
+    cache_valid_time: 86400 #One day
+
+- name: Install VM dependencies
+  apt:
+    name:
+      - cloud-init
+      - python-pip
+    force_apt_get: "yes"
+
+- name: Install proxmoxer module
+  pip:
+    name: proxmoxer

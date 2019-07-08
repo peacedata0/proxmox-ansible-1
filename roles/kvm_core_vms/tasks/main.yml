@@ -1,0 +1,48 @@
+## Using the proxmox_kvm module seems like a good idea,
+## But it can only make a full clone, not make a linked clone.
+## With `full: false` it fails with 500 Internal Server Error,
+## and I don't know how to debug it:
+# - name: Create test KVM
+#   proxmox_kvm:
+#     api_user: "{{ proxmox_kvm_admin }}"
+#     api_password: "{{ proxmox_kvm_admin_password }}"
+#     api_host: nuc1
+#     clone: ubuntu-bionic.m1-nano
+#     full: false
+#     newid: 100
+#     name: testguy
+#     node: nuc1
+
+
+## Just use the CLI to clone VMs:
+# - name: Check for VM 100 (testguy)
+#   command: qm config 100
+#   register: vm_status_100
+#   ignore_errors: true
+#   changed_when: false
+
+# - name: Create VM 100 (testguy)
+#   when: vm_status_100.rc > 0
+#   command: qm clone {{ ubuntu_bionic_m1_nano_template_id }} 100 -name testguy -target nuc1
+
+# - name: Set VM 100 cloud-init (testguy)
+#   when: vm_status_100.rc > 0
+#   command: qm set 100 -sshkeys /root/.ssh/authorized_keys -ciuser testguy -cipassword testguy
+
+# - name: Resize VM 100 root filesystem (testguy)
+#   when: vm_status_100.rc > 0
+#   command: qm resize 100 scsi0 +10G
+
+
+## Lets try writing our own proxmox module:
+ # - name: Create test KVM (via moxprox)
+ #   moxprox:
+ #     api_user: "{{ proxmox_kvm_admin }}"
+ #     api_password: "{{ proxmox_kvm_admin_password }}"
+ #     api_host: nuc1
+ #     clone: ubuntu-bionic.m1-nano
+ #     full: false
+ #     newid: 100
+ #     name: testguy
+ #     node: nuc1
+

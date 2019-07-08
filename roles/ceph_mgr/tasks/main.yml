@@ -1,0 +1,9 @@
+- name: Check for ceph-mgr
+  command: pgrep ceph-mgr
+  register: ceph_mgr_status
+  ignore_errors: true
+  changed_when: false
+
+- name: Create ceph-mgr
+  shell: pveceph createmgr
+  when: ceph_mgr_status.rc == 1
