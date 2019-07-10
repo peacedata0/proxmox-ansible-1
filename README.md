@@ -3,6 +3,8 @@
 This is an ansible playbook for configuring a [Proxmox](https://pve.proxmox.com) cluster (Virtual Machine
 Hypervisor) and [Ceph](https://ceph.com/) (distributed/clustered block storage and filesystem.)
 
+![Alcor](https://github.com/PlenusPyramis/proxmox-ansible/blob/images/images/alcor.gif?raw=true)
+
 ## Example setup
 
 The included [hosts](inventory/hosts.yml) file references 3 identically configured [Intel
