@@ -1,3 +1,0 @@
-ceph_nic: "{{ vault_ceph_nics.nuc3 }}"
-ceph_ip: 10.10.10.3
-ceph_device: /dev/sda

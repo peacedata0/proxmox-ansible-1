@@ -1,2 +1,0 @@
-ceph_pool: "tank"
-ceph_nodes: "nuc1,nuc2,nuc3"
